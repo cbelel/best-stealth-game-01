@@ -85,6 +85,24 @@ export class Renderer {
       }
     });
     
+    // Tall grass clumps (decor)
+    if (lvl.decor) {
+      lvl.decor.forEach(d => {
+        this.ctx.save();
+        this.ctx.fillStyle = '#064e3b';
+        this.ctx.fillRect(d.x, d.y, d.w, d.h);
+        this.ctx.strokeStyle = '#022c22';
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeRect(d.x, d.y, d.w, d.h);
+        
+        this.ctx.fillStyle = '#10b981';
+        for (let dx = d.x + 8; dx < d.x + d.w - 6; dx += 12) {
+          this.ctx.fillRect(dx, d.y + 6, 4, d.h - 12);
+        }
+        this.ctx.restore();
+      });
+    }
+    
     // Lamps & Radial Glow
     lvl.lamps.forEach(l => {
       const grad = this.ctx.createRadialGradient(l.x, l.y, 8, l.x, l.y, l.radius);
@@ -125,7 +143,7 @@ export class Renderer {
       }
     });
     
-    // Exit Portal (fully clear of boundary walls, with separate safe label position)
+    // Exit Portal
     const allRelics = lvl.relics.every(r => r.collected);
     const ex = lvl.exit;
     this.ctx.save();
@@ -137,7 +155,6 @@ export class Renderer {
     this.ctx.lineWidth = 3;
     this.ctx.strokeRect(ex.x, ex.y, ex.width, ex.height);
     
-    // Label drawn fully inside open floor (to the left or below portal)
     this.ctx.fillStyle = allRelics ? CONFIG.COLORS.exit : CONFIG.COLORS.exitLocked;
     this.ctx.font = 'bold 11px sans-serif';
     this.ctx.textAlign = 'center';
@@ -159,11 +176,12 @@ export class Renderer {
     lvl.cover.forEach(c => {
       this.ctx.save();
       this.ctx.fillStyle = c.type === 'bookshelf' ? CONFIG.COLORS.bookshelf :
-                           c.type === 'pillar' ? CONFIG.COLORS.pillar : CONFIG.COLORS.crate;
+                           c.type === 'pillar' ? CONFIG.COLORS.pillar :
+                           c.type === 'display' ? '#1e293b' : CONFIG.COLORS.crate;
       this.ctx.fillRect(c.x, c.y, c.w, c.h);
       
-      this.ctx.strokeStyle = 'rgba(0,0,0,0.5)';
-      this.ctx.lineWidth = 2;
+      this.ctx.strokeStyle = c.type === 'display' ? '#facc15' : 'rgba(0,0,0,0.5)';
+      this.ctx.lineWidth = c.type === 'display' ? 2 : 2;
       this.ctx.strokeRect(c.x, c.y, c.w, c.h);
       
       if (c.type === 'crate') {
@@ -194,6 +212,12 @@ export class Renderer {
         this.ctx.fill();
         this.ctx.strokeStyle = '#475569';
         this.ctx.stroke();
+      } else if (c.type === 'display') {
+        this.ctx.fillStyle = 'rgba(250, 204, 21, 0.15)';
+        this.ctx.fillRect(c.x + 6, c.y + 6, c.w - 12, c.h - 12);
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.fillRect(c.x + 12, c.y + 12, 6, 3);
+        this.ctx.fillRect(c.x + c.w - 18, c.y + c.h - 15, 6, 3);
       }
       this.ctx.restore();
     });
@@ -295,10 +319,16 @@ export class Renderer {
     this.ctx.font = '12px sans-serif';
     this.ctx.fillText(allRelics ? 'OBJECTIVE: ESCAPE THROUGH EXIT' : `OBJECTIVE: SECURE RELICS (${relicsGot}/3)`, 360, 27);
     
+    const formatTime = (secs) => {
+      const m = Math.floor(secs / 60);
+      const s = Math.floor(secs % 60);
+      return `${m}:${s < 10 ? '0' : ''}${s}`;
+    };
+    
     this.ctx.fillStyle = CONFIG.COLORS.textMuted;
     this.ctx.font = '12px sans-serif';
     this.ctx.textAlign = 'right';
-    this.ctx.fillText(`TIME: ${world.gameTimer.toFixed(1)}s`, CONFIG.PLAYFIELD_WIDTH - 16, 27);
+    this.ctx.fillText(`TIME ${formatTime(world.gameTimer)}`, CONFIG.PLAYFIELD_WIDTH - 16, 27);
     this.ctx.restore();
   }
   
@@ -411,6 +441,95 @@ export class Renderer {
       this.ctx.fillText(n, x + 20, curY);
       curY += 16;
     });
+    curY += 10;
+    
+    // 6. Tactical Map (Job 2)
+    this.ctx.fillStyle = CONFIG.COLORS.text;
+    this.ctx.font = 'bold 12px sans-serif';
+    this.ctx.fillText('TACTICAL MAP', x + 20, curY);
+    curY += 18;
+    
+    const mapBoxX = x + 20;
+    const mapBoxY = curY;
+    const mapBoxW = w - 40;
+    const mapBoxH = 150;
+    
+    this.ctx.fillStyle = '#04060b';
+    this.ctx.fillRect(mapBoxX, mapBoxY, mapBoxW, mapBoxH);
+    this.ctx.strokeStyle = CONFIG.COLORS.uiBorder;
+    this.ctx.lineWidth = 1.5;
+    this.ctx.strokeRect(mapBoxX, mapBoxY, mapBoxW, mapBoxH);
+    
+    const playXMin = 40, playXMax = 930;
+    const playYMin = 44, playYMax = 680;
+    const playW = playXMax - playXMin;
+    const playH = playYMax - playYMin;
+    
+    const scaleX = (mapBoxW - 12) / playW;
+    const scaleY = (mapBoxH - 12) / playH;
+    const scale = Math.min(scaleX, scaleY);
+    
+    const drawW = playW * scale;
+    const drawH = playH * scale;
+    const originX = mapBoxX + (mapBoxW - drawW) / 2;
+    const originY = mapBoxY + (mapBoxH - drawH) / 2;
+    
+    const toMapX = (wx) => originX + (wx - playXMin) * scale;
+    const toMapY = (wy) => originY + (wy - playYMin) * scale;
+    
+    this.ctx.save();
+    this.ctx.beginPath();
+    this.ctx.rect(mapBoxX, mapBoxY, mapBoxW, mapBoxH);
+    this.ctx.clip();
+    
+    world.level.walls.forEach(mw => {
+      this.ctx.fillStyle = CONFIG.COLORS.wall;
+      this.ctx.fillRect(toMapX(mw.x), toMapY(mw.y), mw.w * scale, mw.h * scale);
+    });
+    
+    world.level.cover.forEach(mc => {
+      this.ctx.fillStyle = '#334155';
+      this.ctx.fillRect(toMapX(mc.x), toMapY(mc.y), mc.w * scale, mc.h * scale);
+    });
+    
+    world.level.relics.forEach(mr => {
+      this.ctx.fillStyle = mr.collected ? '#64748b' : CONFIG.COLORS.relic;
+      this.ctx.beginPath();
+      this.ctx.arc(toMapX(mr.x), toMapY(mr.y), Math.max(2, 3.5 * scale), 0, Math.PI * 2);
+      this.ctx.fill();
+    });
+    
+    const mex = world.level.exit;
+    const allRelicsGot = world.level.relics.every(r => r.collected);
+    this.ctx.fillStyle = allRelicsGot ? CONFIG.COLORS.exit : '#64748b';
+    this.ctx.fillRect(toMapX(mex.x), toMapY(mex.y), mex.width * scale, mex.height * scale);
+    
+    world.guards.forEach(mg => {
+      let gCol = CONFIG.COLORS.guardTeal;
+      if (mg.state === 'suspicious') gCol = CONFIG.COLORS.guardAmber;
+      if (mg.state === 'alert') gCol = CONFIG.COLORS.guardAlert;
+      this.ctx.fillStyle = gCol;
+      this.ctx.beginPath();
+      this.ctx.arc(toMapX(mg.x), toMapY(mg.y), Math.max(2, 3 * scale), 0, Math.PI * 2);
+      this.ctx.fill();
+    });
+    
+    const mp = world.player;
+    this.ctx.fillStyle = '#ffffff';
+    this.ctx.beginPath();
+    this.ctx.arc(toMapX(mp.x), toMapY(mp.y), Math.max(2.5, 3.5 * scale), 0, Math.PI * 2);
+    this.ctx.fill();
+    this.ctx.strokeStyle = '#3b82f6';
+    this.ctx.lineWidth = 1;
+    this.ctx.stroke();
+    
+    this.ctx.restore();
+    
+    curY += mapBoxH + 6;
+    this.ctx.fillStyle = CONFIG.COLORS.textMuted;
+    this.ctx.font = '10px sans-serif';
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText('LIVE · PLAYER · GUARDS · RELICS', mapBoxX + mapBoxW / 2, curY);
     
     this.ctx.restore();
   }
@@ -440,7 +559,7 @@ export class Renderer {
     };
     
     if (shotName === 'cover') {
-      drawCallout('TITLE: MOONLIT HEIST', 280, 240, 200, 150);
+      drawCallout('3 GALLERIES · 9 RELICS · ESCAPE UNSEEN', 640, 578, 640, 640);
     } else if (shotName === 'sneak') {
       drawCallout('HIDDEN BEHIND CRATE (CONE STOPS)', 200, 220, 110, 130);
     } else if (shotName === 'alert') {
