@@ -55,7 +55,7 @@ export class Renderer {
       }
     }
     
-    // Rugs / Carpets
+    // Rugs / Carpets (Patterned museum carpets)
     if (lvl.rugs) {
       lvl.rugs.forEach(rug => {
         this.ctx.save();
@@ -65,8 +65,17 @@ export class Renderer {
         this.ctx.lineWidth = 2;
         this.ctx.strokeRect(rug.x, rug.y, rug.w, rug.h);
         
-        this.ctx.strokeStyle = 'rgba(250, 204, 21, 0.25)';
+        this.ctx.strokeStyle = 'rgba(250, 204, 21, 0.35)';
         this.ctx.strokeRect(rug.x + 6, rug.y + 6, rug.w - 12, rug.h - 12);
+        
+        // Diamond / dot motif along center
+        this.ctx.fillStyle = 'rgba(250, 204, 21, 0.3)';
+        const cx = rug.x + rug.w / 2;
+        for (let ry = rug.y + 16; ry < rug.y + rug.h - 12; ry += 24) {
+          this.ctx.beginPath();
+          this.ctx.arc(cx, ry, 3, 0, Math.PI * 2);
+          this.ctx.fill();
+        }
         this.ctx.restore();
       });
     }
@@ -84,6 +93,51 @@ export class Renderer {
         this.ctx.fillRect(s.x, sy, s.w, 2);
       }
     });
+    
+    // Potted museum plants (Job 2)
+    if (lvl.decor) {
+      lvl.decor.forEach(d => {
+        this.ctx.save();
+        const px = d.x + d.w / 2;
+        const py = d.y + d.h;
+        
+        // Terracotta pot
+        this.ctx.fillStyle = '#9a3412';
+        this.ctx.beginPath();
+        this.ctx.moveTo(px - 14, py - 4);
+        this.ctx.lineTo(px + 14, py - 4);
+        this.ctx.lineTo(px + 10, py - 20);
+        this.ctx.lineTo(px - 10, py - 20);
+        this.ctx.closePath();
+        this.ctx.fill();
+        
+        this.ctx.strokeStyle = '#7c2d12';
+        this.ctx.lineWidth = 1.5;
+        this.ctx.stroke();
+        
+        // Pot rim
+        this.ctx.fillStyle = '#c2410c';
+        this.ctx.fillRect(px - 16, py - 23, 32, 4);
+        
+        // Leaves in muted greens
+        const greens = ['#166534', '#15803d', '#14532d', '#22c55e'];
+        const leafAngles = [-0.6, -0.3, 0, 0.2, 0.5, -0.1, 0.3];
+        const leafHeights = [30, 38, 44, 35, 40, 28, 36];
+        
+        leafAngles.forEach((ang, idx) => {
+          this.ctx.save();
+          this.ctx.fillStyle = greens[idx % greens.length];
+          this.ctx.translate(px, py - 23);
+          this.ctx.rotate(ang);
+          this.ctx.beginPath();
+          this.ctx.ellipse(0, -leafHeights[idx]/2, 3.5, leafHeights[idx]/2, 0, 0, Math.PI * 2);
+          this.ctx.fill();
+          this.ctx.restore();
+        });
+        
+        this.ctx.restore();
+      });
+    }
     
     // Lamps & Radial Glow
     lvl.lamps.forEach(l => {
@@ -125,7 +179,7 @@ export class Renderer {
       }
     });
     
-    // Exit Portal (fully clear of boundary walls, with separate safe label position)
+    // Exit Portal
     const allRelics = lvl.relics.every(r => r.collected);
     const ex = lvl.exit;
     this.ctx.save();
@@ -137,14 +191,13 @@ export class Renderer {
     this.ctx.lineWidth = 3;
     this.ctx.strokeRect(ex.x, ex.y, ex.width, ex.height);
     
-    // Label drawn fully inside open floor (to the left or below portal)
     this.ctx.fillStyle = allRelics ? CONFIG.COLORS.exit : CONFIG.COLORS.exitLocked;
     this.ctx.font = 'bold 11px sans-serif';
     this.ctx.textAlign = 'center';
     this.ctx.fillText(allRelics ? 'EXIT' : 'LOCKED', ex.x + ex.width / 2, ex.y - 8);
     this.ctx.restore();
     
-    // Walls
+    // Walls & Wall Art / Sconces (Job 3)
     lvl.walls.forEach(w => {
       this.ctx.fillStyle = CONFIG.COLORS.wall;
       this.ctx.fillRect(w.x, w.y, w.w, w.h);
@@ -155,45 +208,136 @@ export class Renderer {
       this.ctx.strokeRect(w.x, w.y, w.w, w.h);
     });
     
-    // Cover props
+    // Framed paintings & Sconces on top wall area
+    this.ctx.save();
+    this.ctx.fillStyle = '#facc15';
+    this.ctx.fillRect(250, 48, 50, 22);
+    this.ctx.fillStyle = '#1e293b';
+    this.ctx.fillRect(252, 50, 46, 18);
+    this.ctx.fillStyle = '#e2e8f0';
+    this.ctx.beginPath();
+    this.ctx.arc(275, 59, 5, 0, Math.PI * 2);
+    this.ctx.fill();
+
+    this.ctx.fillStyle = '#facc15';
+    this.ctx.fillRect(520, 48, 60, 22);
+    this.ctx.fillStyle = '#1e293b';
+    this.ctx.fillRect(522, 50, 56, 18);
+    this.ctx.fillStyle = '#065f46';
+    this.ctx.beginPath();
+    this.ctx.moveTo(530, 68);
+    this.ctx.lineTo(550, 54);
+    this.ctx.lineTo(570, 68);
+    this.ctx.fill();
+
+    const sconces = [{x: 200, y: 55}, {x: 700, y: 55}];
+    sconces.forEach(sc => {
+      const sgrad = this.ctx.createRadialGradient(sc.x, sc.y, 2, sc.x, sc.y, 35);
+      sgrad.addColorStop(0, 'rgba(251, 191, 36, 0.4)');
+      sgrad.addColorStop(1, 'rgba(251, 191, 36, 0)');
+      this.ctx.fillStyle = sgrad;
+      this.ctx.beginPath();
+      this.ctx.arc(sc.x, sc.y, 35, 0, Math.PI * 2);
+      this.ctx.fill();
+
+      this.ctx.fillStyle = '#facc15';
+      this.ctx.beginPath();
+      this.ctx.arc(sc.x, sc.y, 4, 0, Math.PI * 2);
+      this.ctx.fill();
+    });
+    this.ctx.restore();
+    
+    // Cover props (Job 1 Bookshelves)
     lvl.cover.forEach(c => {
       this.ctx.save();
-      this.ctx.fillStyle = c.type === 'bookshelf' ? CONFIG.COLORS.bookshelf :
-                           c.type === 'pillar' ? CONFIG.COLORS.pillar : CONFIG.COLORS.crate;
-      this.ctx.fillRect(c.x, c.y, c.w, c.h);
-      
-      this.ctx.strokeStyle = 'rgba(0,0,0,0.5)';
-      this.ctx.lineWidth = 2;
-      this.ctx.strokeRect(c.x, c.y, c.w, c.h);
-      
-      if (c.type === 'crate') {
-        this.ctx.strokeStyle = 'rgba(0,0,0,0.3)';
-        this.ctx.lineWidth = 1.5;
-        this.ctx.beginPath();
-        this.ctx.moveTo(c.x, c.y);
-        this.ctx.lineTo(c.x + c.w, c.y + c.h);
-        this.ctx.moveTo(c.x + c.w, c.y);
-        this.ctx.lineTo(c.x, c.y + c.h);
-        this.ctx.stroke();
-      } else if (c.type === 'bookshelf') {
-        const bookColors = ['#dc2626', '#2563eb', '#16a34a', '#d97706', '#9333ea', '#0891b2'];
-        let bx = c.x + 4;
-        let bi = 0;
-        while (bx < c.x + c.w - 6) {
-          this.ctx.fillStyle = bookColors[bi % bookColors.length];
-          const bw = 6;
-          const bh = c.h - 8;
-          this.ctx.fillRect(bx, c.y + 4, bw, bh);
-          bx += bw + 2;
-          bi++;
+      if (c.type === 'bookshelf') {
+        // Outer frame: dark wood border
+        this.ctx.fillStyle = '#2d1f14';
+        this.ctx.fillRect(c.x, c.y, c.w, c.h);
+        
+        // Top cornice & bottom plinth
+        this.ctx.fillStyle = '#3d2817';
+        this.ctx.fillRect(c.x, c.y, c.w, 4);
+        this.ctx.fillRect(c.x, c.y + c.h - 4, c.w, 4);
+        
+        // Rows
+        const numRows = c.h >= 80 ? 3 : 2;
+        const rowH = (c.h - 8) / numRows;
+        
+        const jewelTones = ['#7f1d1d', '#134e4a', '#92400e', '#1e3a5f', '#4c1d95', '#14532d', '#701a75'];
+        
+        for (let r = 0; r < numRows; r++) {
+          const ry = c.y + 4 + r * rowH;
+          if (r > 0) {
+            this.ctx.fillStyle = '#3d2817';
+            this.ctx.fillRect(c.x + 2, ry - 2, c.w - 4, 3);
+          }
+          
+          let bx = c.x + 5;
+          let bi = r * 7;
+          while (bx < c.x + c.w - 6) {
+            const spineW = 6 + (bi % 3);
+            if (bx + spineW > c.x + c.w - 5) break;
+            
+            if (bi % 11 === 4) {
+              bx += 6;
+              bi++;
+              continue;
+            }
+            
+            const col = jewelTones[bi % jewelTones.length];
+            const hOffset = (bi % 3 === 0) ? 4 : 2;
+            const bH = rowH - hOffset;
+            const bY = ry + (rowH - bH);
+            
+            this.ctx.fillStyle = col;
+            this.ctx.fillRect(bx, bY, spineW, bH);
+            
+            // Page edge highlight
+            this.ctx.fillStyle = 'rgba(254, 243, 199, 0.6)';
+            this.ctx.fillRect(bx, bY, spineW, 2);
+            
+            bx += spineW + 1;
+            bi++;
+          }
         }
-      } else if (c.type === 'pillar') {
-        this.ctx.fillStyle = '#1e293b';
-        this.ctx.beginPath();
-        this.ctx.arc(c.x + c.w/2, c.y + c.h/2, Math.min(c.w, c.h)/3, 0, Math.PI * 2);
-        this.ctx.fill();
-        this.ctx.strokeStyle = '#475569';
-        this.ctx.stroke();
+        
+        this.ctx.strokeStyle = '#1a110a';
+        this.ctx.lineWidth = 1.5;
+        this.ctx.strokeRect(c.x, c.y, c.w, c.h);
+        
+      } else {
+        this.ctx.fillStyle = c.type === 'pillar' ? CONFIG.COLORS.pillar :
+                             c.type === 'display' ? '#1e293b' : CONFIG.COLORS.crate;
+        this.ctx.fillRect(c.x, c.y, c.w, c.h);
+        
+        this.ctx.strokeStyle = c.type === 'display' ? '#facc15' : 'rgba(0,0,0,0.5)';
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(c.x, c.y, c.w, c.h);
+        
+        if (c.type === 'crate') {
+          this.ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+          this.ctx.lineWidth = 1.5;
+          this.ctx.beginPath();
+          this.ctx.moveTo(c.x, c.y);
+          this.ctx.lineTo(c.x + c.w, c.y + c.h);
+          this.ctx.moveTo(c.x + c.w, c.y);
+          this.ctx.lineTo(c.x, c.y + c.h);
+          this.ctx.stroke();
+        } else if (c.type === 'pillar') {
+          this.ctx.fillStyle = '#1e293b';
+          this.ctx.beginPath();
+          this.ctx.arc(c.x + c.w/2, c.y + c.h/2, Math.min(c.w, c.h)/3, 0, Math.PI * 2);
+          this.ctx.fill();
+          this.ctx.strokeStyle = '#475569';
+          this.ctx.stroke();
+        } else if (c.type === 'display') {
+          this.ctx.fillStyle = 'rgba(250, 204, 21, 0.15)';
+          this.ctx.fillRect(c.x + 6, c.y + 6, c.w - 12, c.h - 12);
+          this.ctx.fillStyle = '#ffffff';
+          this.ctx.fillRect(c.x + 12, c.y + 12, 6, 3);
+          this.ctx.fillRect(c.x + c.w - 18, c.y + c.h - 15, 6, 3);
+        }
       }
       this.ctx.restore();
     });
@@ -295,10 +439,16 @@ export class Renderer {
     this.ctx.font = '12px sans-serif';
     this.ctx.fillText(allRelics ? 'OBJECTIVE: ESCAPE THROUGH EXIT' : `OBJECTIVE: SECURE RELICS (${relicsGot}/3)`, 360, 27);
     
+    const formatTime = (secs) => {
+      const m = Math.floor(secs / 60);
+      const s = Math.floor(secs % 60);
+      return `${m}:${s < 10 ? '0' : ''}${s}`;
+    };
+    
     this.ctx.fillStyle = CONFIG.COLORS.textMuted;
     this.ctx.font = '12px sans-serif';
     this.ctx.textAlign = 'right';
-    this.ctx.fillText(`TIME: ${world.gameTimer.toFixed(1)}s`, CONFIG.PLAYFIELD_WIDTH - 16, 27);
+    this.ctx.fillText(`TIME ${formatTime(world.gameTimer)}`, CONFIG.PLAYFIELD_WIDTH - 16, 27);
     this.ctx.restore();
   }
   
@@ -411,6 +561,101 @@ export class Renderer {
       this.ctx.fillText(n, x + 20, curY);
       curY += 16;
     });
+    curY += 10;
+    
+    // 6. Tactical Map (Brighter minimap - Job 4)
+    this.ctx.fillStyle = CONFIG.COLORS.text;
+    this.ctx.font = 'bold 12px sans-serif';
+    this.ctx.fillText('TACTICAL MAP', x + 20, curY);
+    curY += 18;
+    
+    const mapBoxX = x + 20;
+    const mapBoxY = curY;
+    const mapBoxW = w - 40;
+    const mapBoxH = 140;
+    
+    this.ctx.fillStyle = '#0b0f19'; // slightly lighter map bg
+    this.ctx.fillRect(mapBoxX, mapBoxY, mapBoxW, mapBoxH);
+    this.ctx.strokeStyle = '#3b82f6';
+    this.ctx.lineWidth = 1.5;
+    this.ctx.strokeRect(mapBoxX, mapBoxY, mapBoxW, mapBoxH);
+    
+    const playXMin = 40, playXMax = 930;
+    const playYMin = 44, playYMax = 680;
+    const playW = playXMax - playXMin;
+    const playH = playYMax - playYMin;
+    
+    const scaleX = (mapBoxW - 12) / playW;
+    const scaleY = (mapBoxH - 12) / playH;
+    const scale = Math.min(scaleX, scaleY);
+    
+    const drawW = playW * scale;
+    const drawH = playH * scale;
+    const originX = mapBoxX + (mapBoxW - drawW) / 2;
+    const originY = mapBoxY + (mapBoxH - drawH) / 2;
+    
+    const toMapX = (wx) => originX + (wx - playXMin) * scale;
+    const toMapY = (wy) => originY + (wy - playYMin) * scale;
+    
+    this.ctx.save();
+    this.ctx.beginPath();
+    this.ctx.rect(mapBoxX, mapBoxY, mapBoxW, mapBoxH);
+    this.ctx.clip();
+    
+    world.level.walls.forEach(mw => {
+      this.ctx.fillStyle = '#475569';
+      this.ctx.fillRect(toMapX(mw.x), toMapY(mw.y), mw.w * scale, mw.h * scale);
+    });
+    
+    world.level.cover.forEach(mc => {
+      this.ctx.fillStyle = '#64748b';
+      this.ctx.fillRect(toMapX(mc.x), toMapY(mc.y), mc.w * scale, mc.h * scale);
+    });
+    
+    world.level.relics.forEach(mr => {
+      this.ctx.fillStyle = mr.collected ? '#94a3b8' : '#fbbf24';
+      this.ctx.beginPath();
+      this.ctx.arc(toMapX(mr.x), toMapY(mr.y), Math.max(2.5, 4 * scale), 0, Math.PI * 2);
+      this.ctx.fill();
+    });
+    
+    const mex = world.level.exit;
+    const allRelicsGot = world.level.relics.every(r => r.collected);
+    this.ctx.fillStyle = allRelicsGot ? '#4ade80' : '#64748b';
+    this.ctx.fillRect(toMapX(mex.x), toMapY(mex.y), mex.width * scale, mex.height * scale);
+    
+    world.guards.forEach(mg => {
+      let gCol = '#2dd4bf';
+      if (mg.state === 'suspicious') gCol = '#fbbf24';
+      if (mg.state === 'alert') gCol = '#ef4444';
+      this.ctx.fillStyle = gCol;
+      this.ctx.beginPath();
+      this.ctx.arc(toMapX(mg.x), toMapY(mg.y), Math.max(2.5, 3.5 * scale), 0, Math.PI * 2);
+      this.ctx.fill();
+    });
+    
+    const mp = world.player;
+    this.ctx.fillStyle = '#ffffff';
+    this.ctx.beginPath();
+    this.ctx.arc(toMapX(mp.x), toMapY(mp.y), Math.max(3, 4 * scale), 0, Math.PI * 2);
+    this.ctx.fill();
+    this.ctx.strokeStyle = '#60a5fa';
+    this.ctx.lineWidth = 1.5;
+    this.ctx.stroke();
+    
+    this.ctx.restore();
+    
+    curY += mapBoxH + 6;
+    this.ctx.fillStyle = CONFIG.COLORS.textMuted;
+    this.ctx.font = '10px sans-serif';
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText('LIVE · PLAYER · GUARDS · RELICS', mapBoxX + mapBoxW / 2, curY);
+    curY += 16;
+    
+    // Gallery progress fill (Job 4)
+    this.ctx.fillStyle = CONFIG.COLORS.lamp;
+    this.ctx.font = 'bold 11px sans-serif';
+    this.ctx.fillText(`GALLERY ${world.level.id} / 3 · ${world.level.name.toUpperCase()}`, mapBoxX + mapBoxW / 2, curY);
     
     this.ctx.restore();
   }
@@ -419,20 +664,21 @@ export class Renderer {
     this.ctx.save();
     
     const drawCallout = (text, lx, ly, tx, ty) => {
-      this.ctx.font = 'bold 11px sans-serif';
+      this.ctx.font = 'bold 12px sans-serif';
       const tw = this.ctx.measureText(text).width;
       
-      this.ctx.fillStyle = 'rgba(4, 6, 11, 0.9)';
-      this.ctx.strokeStyle = '#facc15';
-      this.ctx.lineWidth = 1.5;
-      this.ctx.fillRect(tx - 6, ty - 13, tw + 12, 22);
-      this.ctx.strokeRect(tx - 6, ty - 13, tw + 12, 22);
+      // Stronger backing pill & higher contrast (Job 4)
+      this.ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+      this.ctx.strokeStyle = '#fbbf24';
+      this.ctx.lineWidth = 2;
+      this.ctx.fillRect(tx - 8, ty - 14, tw + 16, 26);
+      this.ctx.strokeRect(tx - 8, ty - 14, tw + 16, 26);
       
-      this.ctx.fillStyle = '#facc15';
-      this.ctx.fillText(text, tx, ty + 2);
+      this.ctx.fillStyle = '#fef08a';
+      this.ctx.fillText(text, tx, ty + 3);
       
-      this.ctx.strokeStyle = '#facc15';
-      this.ctx.lineWidth = 1.5;
+      this.ctx.strokeStyle = '#fbbf24';
+      this.ctx.lineWidth = 2;
       this.ctx.beginPath();
       this.ctx.moveTo(lx, ly);
       this.ctx.lineTo(tx, ty);
@@ -440,7 +686,7 @@ export class Renderer {
     };
     
     if (shotName === 'cover') {
-      drawCallout('TITLE: MOONLIT HEIST', 280, 240, 200, 150);
+      drawCallout('3 GALLERIES · 9 RELICS · ESCAPE UNSEEN', 640, 578, 640, 640);
     } else if (shotName === 'sneak') {
       drawCallout('HIDDEN BEHIND CRATE (CONE STOPS)', 200, 220, 110, 130);
     } else if (shotName === 'alert') {
