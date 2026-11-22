@@ -43,7 +43,8 @@ export const LEVELS = [
       { x: 620, y: 300, w: 180, h: 40 }
     ],
     decor: [
-      { x: 740, y: 560, w: 90, h: 60 }
+      { x: 740, y: 560, w: 90, h: 60, type: 'plant' },
+      { x: 230, y: 310, w: 50, h: 50, type: 'statue' }
     ],
     guards: [
       {

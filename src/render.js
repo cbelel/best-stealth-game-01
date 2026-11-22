@@ -22,14 +22,19 @@ export class Renderer {
     // 3. Render Right Side Panel
     this.renderSidePanel(world);
     
-    // 4. Render Screenshot Annotations if requested
-    if (screenshotMode && shotName) {
+    // 4. Render Screenshot Annotations if requested (skip cover here, render cover after overlay)
+    if (screenshotMode && shotName && shotName !== 'cover') {
       this.renderAnnotations(shotName);
     }
     
     // 5. Render Overlay Screens if not playing
     if (world.state !== 'play') {
       this.renderScreen(world);
+    }
+    
+    // 6. Render Cover Annotation on top of title overlay if cover shot mode
+    if (screenshotMode && shotName === 'cover') {
+      this.renderAnnotations(shotName);
     }
   }
   
@@ -68,7 +73,6 @@ export class Renderer {
         this.ctx.strokeStyle = 'rgba(250, 204, 21, 0.35)';
         this.ctx.strokeRect(rug.x + 6, rug.y + 6, rug.w - 12, rug.h - 12);
         
-        // Diamond / dot motif along center
         this.ctx.fillStyle = 'rgba(250, 204, 21, 0.3)';
         const cx = rug.x + rug.w / 2;
         for (let ry = rug.y + 16; ry < rug.y + rug.h - 12; ry += 24) {
@@ -94,47 +98,117 @@ export class Renderer {
       }
     });
     
-    // Potted museum plants (Job 2)
+    // Decor / Museum Props (Enlarged Potted Plants & Refined Neoclassical Bust Statue)
     if (lvl.decor) {
       lvl.decor.forEach(d => {
         this.ctx.save();
-        const px = d.x + d.w / 2;
-        const py = d.y + d.h;
-        
-        // Terracotta pot
-        this.ctx.fillStyle = '#9a3412';
-        this.ctx.beginPath();
-        this.ctx.moveTo(px - 14, py - 4);
-        this.ctx.lineTo(px + 14, py - 4);
-        this.ctx.lineTo(px + 10, py - 20);
-        this.ctx.lineTo(px - 10, py - 20);
-        this.ctx.closePath();
-        this.ctx.fill();
-        
-        this.ctx.strokeStyle = '#7c2d12';
-        this.ctx.lineWidth = 1.5;
-        this.ctx.stroke();
-        
-        // Pot rim
-        this.ctx.fillStyle = '#c2410c';
-        this.ctx.fillRect(px - 16, py - 23, 32, 4);
-        
-        // Leaves in muted greens
-        const greens = ['#166534', '#15803d', '#14532d', '#22c55e'];
-        const leafAngles = [-0.6, -0.3, 0, 0.2, 0.5, -0.1, 0.3];
-        const leafHeights = [30, 38, 44, 35, 40, 28, 36];
-        
-        leafAngles.forEach((ang, idx) => {
-          this.ctx.save();
-          this.ctx.fillStyle = greens[idx % greens.length];
-          this.ctx.translate(px, py - 23);
-          this.ctx.rotate(ang);
+        if (d.type === 'statue') {
+          // Refined Neoclassical Bust Statue on Pedestal (Ronde 6)
+          const px = d.x + d.w / 2;
+          const py = d.y + d.h;
+          
+          // Pedestal base block
+          this.ctx.fillStyle = '#334155';
+          this.ctx.fillRect(d.x + 4, py - 22, d.w - 8, 22);
+          this.ctx.strokeStyle = '#1e293b';
+          this.ctx.lineWidth = 1.5;
+          this.ctx.strokeRect(d.x + 4, py - 22, d.w - 8, 22);
+          
+          // Pedestal cap molding
+          this.ctx.fillStyle = '#64748b';
+          this.ctx.fillRect(d.x + 2, py - 26, d.w - 4, 4);
+          
+          // Gold identification plaque with engraved text lines
+          this.ctx.fillStyle = '#facc15';
+          this.ctx.fillRect(px - 12, py - 13, 24, 6);
+          this.ctx.fillStyle = '#451a03';
+          this.ctx.fillRect(px - 9, py - 11, 10, 1.5);
+          this.ctx.fillRect(px - 9, py - 8, 14, 1.5);
+          
+          // Neoclassical bust sculpture (shoulders, neck, head, highlights & shadows)
+          // Shoulders / Draped torso base
+          this.ctx.fillStyle = '#64748b';
           this.ctx.beginPath();
-          this.ctx.ellipse(0, -leafHeights[idx]/2, 3.5, leafHeights[idx]/2, 0, 0, Math.PI * 2);
+          this.ctx.moveTo(px - 14, py - 26);
+          this.ctx.lineTo(px + 14, py - 26);
+          this.ctx.lineTo(px + 10, py - 34);
+          this.ctx.lineTo(px - 10, py - 34);
+          this.ctx.closePath();
           this.ctx.fill();
-          this.ctx.restore();
-        });
-        
+          
+          // Shoulders highlight and shadow
+          this.ctx.fillStyle = '#94a3b8';
+          this.ctx.beginPath();
+          this.ctx.moveTo(px - 13, py - 26);
+          this.ctx.lineTo(px, py - 26);
+          this.ctx.lineTo(px, py - 34);
+          this.ctx.lineTo(px - 9, py - 34);
+          this.ctx.closePath();
+          this.ctx.fill();
+          
+          // Neck column
+          this.ctx.fillStyle = '#cbd5e1';
+          this.ctx.fillRect(px - 4, py - 40, 8, 7);
+          this.ctx.fillStyle = '#94a3b8';
+          this.ctx.fillRect(px, py - 40, 4, 7);
+          
+          // Head (classical bust form with contour & highlight)
+          this.ctx.fillStyle = '#cbd5e1';
+          this.ctx.beginPath();
+          this.ctx.arc(px, py - 47, 9, 0, Math.PI * 2);
+          this.ctx.fill();
+          
+          // Head lighting / highlight (top-left)
+          this.ctx.fillStyle = '#f1f5f9';
+          this.ctx.beginPath();
+          this.ctx.arc(px - 2, py - 49, 6, Math.PI, Math.PI * 1.85);
+          this.ctx.fill();
+          
+          // Classical hair contour / crown ridge
+          this.ctx.fillStyle = '#64748b';
+          this.ctx.beginPath();
+          this.ctx.arc(px, py - 50, 7, Math.PI, Math.PI * 2);
+          this.ctx.fill();
+          
+        } else {
+          // Enlarged Potted plant (~1.4x)
+          const px = d.x + d.w / 2;
+          const py = d.y + d.h;
+          
+          // Terracotta pot
+          this.ctx.fillStyle = '#9a3412';
+          this.ctx.beginPath();
+          this.ctx.moveTo(px - 20, py - 6);
+          this.ctx.lineTo(px + 20, py - 6);
+          this.ctx.lineTo(px + 14, py - 28);
+          this.ctx.lineTo(px - 14, py - 28);
+          this.ctx.closePath();
+          this.ctx.fill();
+          
+          this.ctx.strokeStyle = '#7c2d12';
+          this.ctx.lineWidth = 2;
+          this.ctx.stroke();
+          
+          // Pot rim
+          this.ctx.fillStyle = '#c2410c';
+          this.ctx.fillRect(px - 22, py - 32, 44, 6);
+          
+          // Leaves in muted greens (larger)
+          const greens = ['#166534', '#15803d', '#14532d', '#22c55e', '#16a34a'];
+          const leafAngles = [-0.65, -0.35, -0.1, 0.15, 0.4, 0.65, 0];
+          const leafHeights = [44, 54, 62, 50, 58, 42, 52];
+          
+          leafAngles.forEach((ang, idx) => {
+            this.ctx.save();
+            this.ctx.fillStyle = greens[idx % greens.length];
+            this.ctx.translate(px, py - 32);
+            this.ctx.rotate(ang);
+            this.ctx.beginPath();
+            this.ctx.ellipse(0, -leafHeights[idx]/2, 5, leafHeights[idx]/2, 0, 0, Math.PI * 2);
+            this.ctx.fill();
+            this.ctx.restore();
+          });
+        }
         this.ctx.restore();
       });
     }
@@ -197,7 +271,7 @@ export class Renderer {
     this.ctx.fillText(allRelics ? 'EXIT' : 'LOCKED', ex.x + ex.width / 2, ex.y - 8);
     this.ctx.restore();
     
-    // Walls & Wall Art / Sconces (Job 3)
+    // Walls
     lvl.walls.forEach(w => {
       this.ctx.fillStyle = CONFIG.COLORS.wall;
       this.ctx.fillRect(w.x, w.y, w.w, w.h);
@@ -208,29 +282,29 @@ export class Renderer {
       this.ctx.strokeRect(w.x, w.y, w.w, w.h);
     });
     
-    // Framed paintings & Sconces on top wall area
+    // Bolder, enlarged top-wall paintings & Sconces
     this.ctx.save();
     this.ctx.fillStyle = '#facc15';
-    this.ctx.fillRect(250, 48, 50, 22);
-    this.ctx.fillStyle = '#1e293b';
-    this.ctx.fillRect(252, 50, 46, 18);
-    this.ctx.fillStyle = '#e2e8f0';
+    this.ctx.fillRect(245, 46, 65, 26);
+    this.ctx.fillStyle = '#0f172a';
+    this.ctx.fillRect(247, 48, 61, 22);
+    this.ctx.fillStyle = '#fef08a';
     this.ctx.beginPath();
-    this.ctx.arc(275, 59, 5, 0, Math.PI * 2);
+    this.ctx.arc(277, 59, 7, 0, Math.PI * 2);
     this.ctx.fill();
 
     this.ctx.fillStyle = '#facc15';
-    this.ctx.fillRect(520, 48, 60, 22);
-    this.ctx.fillStyle = '#1e293b';
-    this.ctx.fillRect(522, 50, 56, 18);
-    this.ctx.fillStyle = '#065f46';
+    this.ctx.fillRect(515, 46, 75, 26);
+    this.ctx.fillStyle = '#0f172a';
+    this.ctx.fillRect(517, 48, 71, 22);
+    this.ctx.fillStyle = '#047857';
     this.ctx.beginPath();
-    this.ctx.moveTo(530, 68);
-    this.ctx.lineTo(550, 54);
-    this.ctx.lineTo(570, 68);
+    this.ctx.moveTo(525, 70);
+    this.ctx.lineTo(552, 52);
+    this.ctx.lineTo(580, 70);
     this.ctx.fill();
 
-    const sconces = [{x: 200, y: 55}, {x: 700, y: 55}];
+    const sconces = [{x: 190, y: 55}, {x: 710, y: 55}];
     sconces.forEach(sc => {
       const sgrad = this.ctx.createRadialGradient(sc.x, sc.y, 2, sc.x, sc.y, 35);
       sgrad.addColorStop(0, 'rgba(251, 191, 36, 0.4)');
@@ -247,20 +321,17 @@ export class Renderer {
     });
     this.ctx.restore();
     
-    // Cover props (Job 1 Bookshelves)
+    // Cover props (Bookshelves)
     lvl.cover.forEach(c => {
       this.ctx.save();
       if (c.type === 'bookshelf') {
-        // Outer frame: dark wood border
         this.ctx.fillStyle = '#2d1f14';
         this.ctx.fillRect(c.x, c.y, c.w, c.h);
         
-        // Top cornice & bottom plinth
         this.ctx.fillStyle = '#3d2817';
         this.ctx.fillRect(c.x, c.y, c.w, 4);
         this.ctx.fillRect(c.x, c.y + c.h - 4, c.w, 4);
         
-        // Rows
         const numRows = c.h >= 80 ? 3 : 2;
         const rowH = (c.h - 8) / numRows;
         
@@ -293,7 +364,6 @@ export class Renderer {
             this.ctx.fillStyle = col;
             this.ctx.fillRect(bx, bY, spineW, bH);
             
-            // Page edge highlight
             this.ctx.fillStyle = 'rgba(254, 243, 199, 0.6)';
             this.ctx.fillRect(bx, bY, spineW, 2);
             
@@ -361,7 +431,6 @@ export class Renderer {
       this.ctx.fill();
       this.ctx.restore();
       
-      // Guard body
       this.ctx.save();
       this.ctx.fillStyle = g.state === 'alert' ? CONFIG.COLORS.guardAlert :
                            g.state === 'suspicious' ? CONFIG.COLORS.guardAmber : CONFIG.COLORS.guardTeal;
@@ -469,7 +538,6 @@ export class Renderer {
     
     let curY = 30;
     
-    // 1. Detection State Word Banner
     let stateWord = "UNDETECTED";
     let stateCol = CONFIG.COLORS.success;
     if (world.detectionMeter > 0.7) {
@@ -486,7 +554,6 @@ export class Renderer {
     this.ctx.fillText(stateWord, x + w / 2, curY);
     curY += 25;
     
-    // Detection Meter Bar
     const barW = w - 40;
     const barH = 16;
     this.ctx.fillStyle = '#0f172a';
@@ -498,7 +565,6 @@ export class Renderer {
     this.ctx.fillRect(x + 22, curY + 2, (barW - 4) * world.detectionMeter, barH - 4);
     curY += 32;
     
-    // 2. Status & Meters
     this.ctx.textAlign = 'left';
     this.ctx.fillStyle = CONFIG.COLORS.textMuted;
     this.ctx.font = '11px sans-serif';
@@ -509,7 +575,6 @@ export class Renderer {
     this.ctx.fillText(`STANCE: ${visibility}`, x + 20, curY);
     curY += 28;
     
-    // 3. Objectives Checklist
     this.ctx.fillStyle = CONFIG.COLORS.text;
     this.ctx.font = 'bold 12px sans-serif';
     this.ctx.fillText('OBJECTIVES', x + 20, curY);
@@ -528,7 +593,6 @@ export class Renderer {
     this.ctx.fillText(`${allRelics ? '[✓]' : '[ ]'} Reach Exit Portal`, x + 20, curY);
     curY += 28;
     
-    // 4. Guard Roster
     this.ctx.fillStyle = CONFIG.COLORS.text;
     this.ctx.font = 'bold 12px sans-serif';
     this.ctx.fillText('WARDEN ROSTER', x + 20, curY);
@@ -542,7 +606,6 @@ export class Renderer {
     });
     curY += 14;
     
-    // 5. Field Notes Legend
     this.ctx.fillStyle = CONFIG.COLORS.text;
     this.ctx.font = 'bold 12px sans-serif';
     this.ctx.fillText('FIELD NOTES', x + 20, curY);
@@ -563,7 +626,7 @@ export class Renderer {
     });
     curY += 10;
     
-    // 6. Tactical Map (Brighter minimap - Job 4)
+    // Tactical Map
     this.ctx.fillStyle = CONFIG.COLORS.text;
     this.ctx.font = 'bold 12px sans-serif';
     this.ctx.fillText('TACTICAL MAP', x + 20, curY);
@@ -572,9 +635,9 @@ export class Renderer {
     const mapBoxX = x + 20;
     const mapBoxY = curY;
     const mapBoxW = w - 40;
-    const mapBoxH = 140;
+    const mapBoxH = 130;
     
-    this.ctx.fillStyle = '#0b0f19'; // slightly lighter map bg
+    this.ctx.fillStyle = '#0b0f19';
     this.ctx.fillRect(mapBoxX, mapBoxY, mapBoxW, mapBoxH);
     this.ctx.strokeStyle = '#3b82f6';
     this.ctx.lineWidth = 1.5;
@@ -645,17 +708,36 @@ export class Renderer {
     
     this.ctx.restore();
     
-    curY += mapBoxH + 6;
+    curY += mapBoxH + 4;
     this.ctx.fillStyle = CONFIG.COLORS.textMuted;
     this.ctx.font = '10px sans-serif';
     this.ctx.textAlign = 'center';
     this.ctx.fillText('LIVE · PLAYER · GUARDS · RELICS', mapBoxX + mapBoxW / 2, curY);
-    curY += 16;
+    curY += 14;
     
-    // Gallery progress fill (Job 4)
     this.ctx.fillStyle = CONFIG.COLORS.lamp;
     this.ctx.font = 'bold 11px sans-serif';
     this.ctx.fillText(`GALLERY ${world.level.id} / 3 · ${world.level.name.toUpperCase()}`, mapBoxX + mapBoxW / 2, curY);
+    curY += 18;
+    
+    // Bottom Side Panel: CONTROLS block (Ronde 6)
+    this.ctx.fillStyle = CONFIG.COLORS.text;
+    this.ctx.font = 'bold 11px sans-serif';
+    this.ctx.textAlign = 'left';
+    this.ctx.fillText('CONTROLS', x + 20, curY);
+    curY += 16;
+    
+    this.ctx.fillStyle = CONFIG.COLORS.textMuted;
+    this.ctx.font = '10px sans-serif';
+    const controlsList = [
+      '• WASD / ARROWS : Move',
+      '• SHIFT : Sneak (Quiet)',
+      '• E / CLICK : Take Relic'
+    ];
+    controlsList.forEach(c => {
+      this.ctx.fillText(c, x + 20, curY);
+      curY += 14;
+    });
     
     this.ctx.restore();
   }
@@ -663,22 +745,21 @@ export class Renderer {
   renderAnnotations(shotName) {
     this.ctx.save();
     
-    const drawCallout = (text, lx, ly, tx, ty) => {
-      this.ctx.font = 'bold 12px sans-serif';
+    const drawCallout = (text, lx, ly, tx, ty, isCover = false) => {
+      this.ctx.font = isCover ? 'bold 13px sans-serif' : 'bold 12px sans-serif';
       const tw = this.ctx.measureText(text).width;
       
-      // Stronger backing pill & higher contrast (Job 4)
-      this.ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+      this.ctx.fillStyle = isCover ? 'rgba(4, 6, 11, 0.98)' : 'rgba(15, 23, 42, 0.95)';
       this.ctx.strokeStyle = '#fbbf24';
-      this.ctx.lineWidth = 2;
-      this.ctx.fillRect(tx - 8, ty - 14, tw + 16, 26);
-      this.ctx.strokeRect(tx - 8, ty - 14, tw + 16, 26);
+      this.ctx.lineWidth = isCover ? 2.5 : 2;
+      this.ctx.fillRect(tx - 10, ty - 15, tw + 20, isCover ? 30 : 26);
+      this.ctx.strokeRect(tx - 10, ty - 15, tw + 20, isCover ? 30 : 26);
       
       this.ctx.fillStyle = '#fef08a';
-      this.ctx.fillText(text, tx, ty + 3);
+      this.ctx.fillText(text, tx, ty + (isCover ? 4 : 3));
       
       this.ctx.strokeStyle = '#fbbf24';
-      this.ctx.lineWidth = 2;
+      this.ctx.lineWidth = isCover ? 2.5 : 2;
       this.ctx.beginPath();
       this.ctx.moveTo(lx, ly);
       this.ctx.lineTo(tx, ty);
@@ -686,9 +767,9 @@ export class Renderer {
     };
     
     if (shotName === 'cover') {
-      drawCallout('3 GALLERIES · 9 RELICS · ESCAPE UNSEEN', 640, 578, 640, 640);
+      drawCallout('3 GALLERIES · 9 RELICS · ESCAPE UNSEEN', 640, 578, 640, 640, true);
     } else if (shotName === 'sneak') {
-      drawCallout('HIDDEN BEHIND CRATE (CONE STOPS)', 200, 220, 110, 130);
+      drawCallout('HIDDEN BEHIND CRATE', 200, 220, 270, 150);
     } else if (shotName === 'alert') {
       drawCallout('WARDEN ALERTED · METER NEAR FULL', 500, 360, 480, 240);
     } else if (shotName === 'exit') {
