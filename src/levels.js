@@ -1,181 +1,198 @@
 export const LEVELS = [
   {
     id: 1,
-    name: "Level 1: The Vestibule",
-    playerStart: { x: 100, y: 360 },
-    exit: { x: 1180, y: 360, width: 40, height: 80 },
+    name: "The Vestibule",
+    playerStart: { x: 80, y: 360 },
+    exit: { x: 830, y: 340, width: 40, height: 80 }, // clear of right wall (starts at 900) by 70px
     relics: [
-      { x: 500, y: 160, collected: false },
-      { x: 800, y: 560, collected: false },
-      { x: 1000, y: 200, collected: false }
+      { x: 420, y: 160, collected: false, name: "Jade Amulet" },
+      { x: 680, y: 560, collected: false, name: "Golden Chalice" },
+      { x: 800, y: 200, collected: false, name: "Obsidian Mask" }
     ],
     walls: [
-      // Outer boundaries
-      { x: 0, y: 0, w: 1280, h: 40 },
-      { x: 0, y: 680, w: 1280, h: 40 },
-      { x: 0, y: 0, w: 40, h: 720 },
-      { x: 1240, y: 0, w: 40, h: 720 },
-      // Internal walls / partitions
-      { x: 360, y: 40, w: 40, h: 260 },
-      { x: 360, y: 460, w: 40, h: 220 },
-      { x: 760, y: 200, w: 40, h: 320 }
+      { x: 40, y: 44, w: 860, h: 30 },
+      { x: 40, y: 650, w: 860, h: 30 },
+      { x: 40, y: 44, w: 30, h: 636 },
+      { x: 900, y: 44, w: 30, h: 636 },
+      { x: 300, y: 74, w: 30, h: 220 },
+      { x: 300, y: 430, w: 30, h: 220 },
+      { x: 580, y: 180, w: 30, h: 320 }
     ],
     cover: [
-      { x: 200, y: 200, w: 80, h: 80, type: 'crate' },
-      { x: 200, y: 480, w: 80, h: 80, type: 'crate' },
-      { x: 540, y: 120, w: 120, h: 60, type: 'bookshelf' },
-      { x: 540, y: 540, w: 120, h: 60, type: 'bookshelf' },
-      { x: 920, y: 340, w: 60, h: 120, type: 'pillar' }
+      { x: 160, y: 180, w: 70, h: 70, type: 'crate' },
+      { x: 160, y: 450, w: 70, h: 70, type: 'crate' },
+      { x: 400, y: 100, w: 100, h: 50, type: 'bookshelf' },
+      { x: 400, y: 530, w: 100, h: 50, type: 'bookshelf' },
+      { x: 700, y: 320, w: 50, h: 100, type: 'pillar' }
     ],
     shadows: [
-      { x: 160, y: 40, w: 160, h: 280 },
-      { x: 600, y: 40, w: 160, h: 200 },
-      { x: 800, y: 440, w: 200, h: 240 }
+      { x: 120, y: 74, w: 150, h: 240 },
+      { x: 440, y: 74, w: 120, h: 180 },
+      { x: 630, y: 420, w: 180, h: 230 }
     ],
     lamps: [
-      { x: 200, y: 360, radius: 180, intensity: 0.9 },
-      { x: 640, y: 360, radius: 220, intensity: 1.0 },
-      { x: 1100, y: 360, radius: 180, intensity: 0.8 }
+      { x: 180, y: 360, radius: 150, intensity: 0.9 },
+      { x: 480, y: 360, radius: 180, intensity: 1.0 },
+      { x: 780, y: 360, radius: 150, intensity: 0.8 }
+    ],
+    rugs: [
+      { x: 350, y: 300, w: 180, h: 120 }
     ],
     guards: [
       {
-        x: 480, y: 160,
-        waypoints: [{x: 480, y: 160}, {x: 480, y: 560}],
+        name: "G-1 ALDO",
+        x: 350, y: 140,
+        waypoints: [{x: 350, y: 140}, {x: 350, y: 580}],
         currentWaypoint: 0,
-        speed: 70
+        speed: 65
       },
       {
-        x: 900, y: 560,
-        waypoints: [{x: 900, y: 560}, {x: 900, y: 160}],
+        name: "G-2 NERIS",
+        x: 650, y: 580,
+        waypoints: [{x: 650, y: 580}, {x: 650, y: 140}],
         currentWaypoint: 0,
-        speed: 70
+        speed: 65
       }
     ]
   },
   {
     id: 2,
-    name: "Level 2: The Gallery of Echoes",
-    playerStart: { x: 80, y: 640 },
-    exit: { x: 1180, y: 80, width: 40, height: 80 },
+    name: "The Gilt Gallery",
+    playerStart: { x: 70, y: 610 },
+    exit: { x: 830, y: 80, width: 40, height: 80 }, // clear of right wall (starts at 900) by 70px
     relics: [
-      { x: 300, y: 120, collected: false },
-      { x: 700, y: 360, collected: false },
-      { x: 1100, y: 600, collected: false }
+      { x: 260, y: 110, collected: false, name: "Sun Medallion" },
+      { x: 540, y: 360, collected: false, name: "Star Compass" },
+      { x: 800, y: 580, collected: false, name: "Royal Crown" }
     ],
     walls: [
-      { x: 0, y: 0, w: 1280, h: 40 },
-      { x: 0, y: 680, w: 1280, h: 40 },
-      { x: 0, y: 0, w: 40, h: 720 },
-      { x: 1240, y: 0, w: 40, h: 720 },
-      { x: 240, y: 160, w: 40, h: 400 },
-      { x: 560, y: 160, w: 40, h: 400 },
-      { x: 880, y: 160, w: 40, h: 400 }
+      { x: 40, y: 44, w: 860, h: 30 },
+      { x: 40, y: 650, w: 860, h: 30 },
+      { x: 40, y: 44, w: 30, h: 636 },
+      { x: 900, y: 44, w: 30, h: 636 },
+      { x: 200, y: 140, w: 30, h: 380 },
+      { x: 450, y: 140, w: 30, h: 380 },
+      { x: 700, y: 140, w: 30, h: 380 }
     ],
     cover: [
-      { x: 120, y: 300, w: 60, h: 120, type: 'bookshelf' },
-      { x: 380, y: 120, w: 100, h: 60, type: 'crate' },
-      { x: 380, y: 540, w: 100, h: 60, type: 'crate' },
-      { x: 700, y: 120, w: 100, h: 60, type: 'bookshelf' },
-      { x: 700, y: 540, w: 100, h: 60, type: 'bookshelf' },
-      { x: 1020, y: 300, w: 60, h: 120, type: 'pillar' }
+      { x: 100, y: 280, w: 50, h: 100, type: 'bookshelf' },
+      { x: 280, y: 100, w: 80, h: 50, type: 'crate' },
+      { x: 280, y: 530, w: 80, h: 50, type: 'crate' },
+      { x: 540, y: 100, w: 80, h: 50, type: 'bookshelf' },
+      { x: 540, y: 530, w: 80, h: 50, type: 'bookshelf' },
+      { x: 760, y: 280, w: 50, h: 100, type: 'pillar' }
     ],
     shadows: [
-      { x: 40, y: 40, w: 200, h: 200 },
-      { x: 280, y: 400, w: 280, h: 280 },
-      { x: 920, y: 40, w: 320, h: 240 }
+      { x: 70, y: 74, w: 120, h: 180 },
+      { x: 240, y: 380, w: 180, h: 260 },
+      { x: 740, y: 74, w: 130, h: 200 }
     ],
     lamps: [
-      { x: 160, y: 360, radius: 160, intensity: 0.8 },
-      { x: 480, y: 360, radius: 180, intensity: 0.9 },
-      { x: 800, y: 360, radius: 180, intensity: 0.9 },
-      { x: 1120, y: 360, radius: 160, intensity: 0.8 }
+      { x: 130, y: 360, radius: 140, intensity: 0.8 },
+      { x: 360, y: 360, radius: 160, intensity: 0.9 },
+      { x: 610, y: 360, radius: 160, intensity: 0.9 },
+      { x: 800, y: 360, radius: 140, intensity: 0.8 }
+    ],
+    rugs: [
+      { x: 230, y: 280, w: 200, h: 100 },
+      { x: 480, y: 280, w: 200, h: 100 }
     ],
     guards: [
       {
-        x: 160, y: 200,
-        waypoints: [{x: 160, y: 200}, {x: 160, y: 520}],
+        name: "G-1 ALDO",
+        x: 130, y: 180,
+        waypoints: [{x: 130, y: 180}, {x: 130, y: 520}],
         currentWaypoint: 0,
-        speed: 80
+        speed: 75
       },
       {
-        x: 640, y: 520,
-        waypoints: [{x: 640, y: 520}, {x: 640, y: 200}],
+        name: "G-2 NERIS",
+        x: 490, y: 520,
+        waypoints: [{x: 490, y: 520}, {x: 490, y: 180}],
         currentWaypoint: 0,
-        speed: 80
+        speed: 75
       },
       {
-        x: 1040, y: 200,
-        waypoints: [{x: 1040, y: 200}, {x: 1040, y: 520}],
+        name: "G-3 CAEL",
+        x: 760, y: 180,
+        waypoints: [{x: 760, y: 180}, {x: 760, y: 520}],
         currentWaypoint: 0,
-        speed: 85
+        speed: 80
       }
     ]
   },
   {
     id: 3,
-    name: "Level 3: The Vault of Ages",
-    playerStart: { x: 640, y: 640 },
-    exit: { x: 640, y: 60, width: 40, height: 80 },
+    name: "The Vault Annex",
+    playerStart: { x: 470, y: 610 },
+    exit: { x: 450, y: 60, width: 40, height: 75 }, // fully open central top corridor, clear of walls
     relics: [
-      { x: 160, y: 120, collected: false },
-      { x: 1120, y: 120, collected: false },
-      { x: 640, y: 360, collected: false }
+      { x: 140, y: 110, collected: false, name: "Ancient Scepter" },
+      { x: 820, y: 110, collected: false, name: "Ruby Skull" },
+      { x: 470, y: 340, collected: false, name: "Heart of the Vault" }
     ],
     walls: [
-      { x: 0, y: 0, w: 1280, h: 40 },
-      { x: 0, y: 680, w: 1280, h: 40 },
-      { x: 0, y: 0, w: 40, h: 720 },
-      { x: 1240, y: 0, w: 40, h: 720 },
-      { x: 280, y: 240, w: 200, h: 40 },
-      { x: 800, y: 240, w: 200, h: 40 },
-      { x: 440, y: 480, w: 400, h: 40 }
+      { x: 40, y: 44, w: 860, h: 30 },
+      { x: 40, y: 650, w: 860, h: 30 },
+      { x: 40, y: 44, w: 30, h: 636 },
+      { x: 900, y: 44, w: 30, h: 636 },
+      { x: 220, y: 220, w: 140, h: 30 },
+      { x: 580, y: 220, w: 140, h: 30 },
+      { x: 330, y: 460, w: 280, h: 30 }
     ],
     cover: [
-      { x: 160, y: 320, w: 80, h: 80, type: 'crate' },
-      { x: 1040, y: 320, w: 80, h: 80, type: 'crate' },
-      { x: 560, y: 140, w: 160, h: 60, type: 'bookshelf' },
-      { x: 560, y: 580, w: 160, h: 60, type: 'bookshelf' },
-      { x: 320, y: 580, w: 60, h: 60, type: 'pillar' },
-      { x: 900, y: 580, w: 60, h: 60, type: 'pillar' }
+      { x: 130, y: 300, w: 70, h: 70, type: 'crate' },
+      { x: 760, y: 300, w: 70, h: 70, type: 'crate' },
+      { x: 410, y: 140, w: 120, h: 40, type: 'bookshelf' },
+      { x: 410, y: 530, w: 120, h: 50, type: 'bookshelf' },
+      { x: 250, y: 530, w: 50, h: 50, type: 'pillar' },
+      { x: 640, y: 530, w: 50, h: 50, type: 'pillar' }
     ],
     shadows: [
-      { x: 40, y: 40, w: 240, h: 200 },
-      { x: 1000, y: 40, w: 240, h: 200 },
-      { x: 40, y: 520, w: 240, h: 160 },
-      { x: 1000, y: 520, w: 240, h: 160 },
-      { x: 540, y: 280, w: 200, h: 160 }
+      { x: 70, y: 74, w: 150, h: 160 },
+      { x: 710, y: 74, w: 150, h: 160 },
+      { x: 70, y: 500, w: 150, h: 150 },
+      { x: 710, y: 500, w: 150, h: 150 },
+      { x: 390, y: 260, w: 160, h: 160 }
     ],
     lamps: [
-      { x: 360, y: 140, radius: 180, intensity: 0.9 },
-      { x: 920, y: 140, radius: 180, intensity: 0.9 },
-      { x: 200, y: 580, radius: 160, intensity: 0.8 },
-      { x: 1080, y: 580, radius: 160, intensity: 0.8 },
-      { x: 640, y: 360, radius: 240, intensity: 1.0 }
+      { x: 280, y: 130, radius: 150, intensity: 0.9 },
+      { x: 660, y: 130, radius: 150, intensity: 0.9 },
+      { x: 170, y: 550, radius: 140, intensity: 0.8 },
+      { x: 790, y: 550, radius: 140, intensity: 0.8 },
+      { x: 470, y: 360, radius: 200, intensity: 1.0 }
+    ],
+    rugs: [
+      { x: 370, y: 300, w: 200, h: 120 }
     ],
     guards: [
       {
-        x: 200, y: 160,
-        waypoints: [{x: 200, y: 160}, {x: 1080, y: 160}],
+        name: "G-1 ALDO",
+        x: 160, y: 150,
+        waypoints: [{x: 160, y: 150}, {x: 780, y: 150}],
+        currentWaypoint: 0,
+        speed: 80
+      },
+      {
+        name: "G-2 NERIS",
+        x: 780, y: 550,
+        waypoints: [{x: 780, y: 550}, {x: 160, y: 550}],
+        currentWaypoint: 0,
+        speed: 80
+      },
+      {
+        name: "G-3 CAEL",
+        x: 470, y: 180,
+        waypoints: [{x: 470, y: 180}, {x: 470, y: 580}],
         currentWaypoint: 0,
         speed: 85
       },
       {
-        x: 1080, y: 560,
-        waypoints: [{x: 1080, y: 560}, {x: 200, y: 560}],
+        name: "G-4 VESS",
+        x: 300, y: 360,
+        waypoints: [{x: 300, y: 360}, {x: 640, y: 360}],
         currentWaypoint: 0,
         speed: 85
-      },
-      {
-        x: 640, y: 200,
-        waypoints: [{x: 640, y: 200}, {x: 640, y: 600}],
-        currentWaypoint: 0,
-        speed: 90
-      },
-      {
-        x: 400, y: 360,
-        waypoints: [{x: 400, y: 360}, {x: 880, y: 360}],
-        currentWaypoint: 0,
-        speed: 90
       }
     ]
   }

@@ -19,6 +19,7 @@ export class World {
     };
     
     this.guards = this.level.guards.map(g => ({
+      name: g.name || "GUARD",
       x: g.x,
       y: g.y,
       radius: 14,
@@ -26,21 +27,22 @@ export class World {
       waypoints: g.waypoints,
       currentWaypoint: g.currentWaypoint,
       speed: g.speed,
-      state: 'patrol', // patrol, suspicious, alert, search
+      state: 'patrol',
       stateTimer: 0,
       lastKnownPlayerX: 0,
       lastKnownPlayerY: 0,
       coneRange: CONFIG.CONE_RANGE,
       coneAngle: CONFIG.CONE_ANGLE,
-      alertness: 0 // 0 to 1
+      alertness: 0
     }));
     
-    this.detectionMeter = 0; // 0 to 1
+    this.detectionMeter = 0;
     this.alarmTimer = 0;
     this.gameTimer = 0;
-    this.state = 'title'; // title, play, paused, levelComplete, gameOver, victory
+    this.state = 'title';
     this.score = { time: 0, detections: 0, relicsCollected: 0 };
     this.footstepTimer = 0;
+    this.noiseIndicator = null;
   }
   
   loadLevel(index) {
@@ -53,8 +55,11 @@ export class World {
     this.player.x = this.level.playerStart.x;
     this.player.y = this.level.playerStart.y;
     this.detectionMeter = 0;
+    this.gameTimer = 0; // Fixed bug: reset timer per level/restart
+    this.noiseIndicator = null;
     
     this.guards = this.level.guards.map(g => ({
+      name: g.name || "GUARD",
       x: g.x,
       y: g.y,
       radius: 14,
@@ -76,6 +81,10 @@ export class World {
     if (this.state !== 'play') return;
     
     this.gameTimer += dt;
+    if (this.noiseIndicator) {
+      this.noiseIndicator.timer -= dt;
+      if (this.noiseIndicator.timer <= 0) this.noiseIndicator = null;
+    }
     
     // Player movement
     let dx = 0;
@@ -110,18 +119,18 @@ export class World {
       
       // Footstep audio & noise
       this.footstepTimer += dt;
-      const stepInterval = this.player.sneaking ? 0.5 : 0.3;
+      const stepInterval = this.player.sneaking ? 0.5 : 0.28;
       if (this.footstepTimer >= stepInterval) {
         this.footstepTimer = 0;
         audio.playFootstep(this.player.sneaking);
         
         if (this.player.running) {
-          // Emit noise that alerts nearby guards
+          this.noiseIndicator = { x: this.player.x, y: this.player.y, timer: 1.2 };
           this.guards.forEach(g => {
             const dist = Math.hypot(g.x - this.player.x, g.y - this.player.y);
-            if (dist < 220 && g.state === 'patrol') {
+            if (dist < 200 && g.state === 'patrol') {
               g.state = 'suspicious';
-              g.stateTimer = 3.0;
+              g.stateTimer = 3.5;
               g.lastKnownPlayerX = this.player.x;
               g.lastKnownPlayerY = this.player.y;
             }
@@ -130,10 +139,10 @@ export class World {
       }
     }
     
-    // Check relic collection (Press E or walk into)
+    // Check relic collection
     this.level.relics.forEach(r => {
-      if (!r.collected && Math.hypot(r.x - this.player.x, r.y - this.player.y) < 30) {
-        if (input.isDown('KeyE') || Math.hypot(r.x - this.player.x, r.y - this.player.y) < 20) {
+      if (!r.collected && Math.hypot(r.x - this.player.x, r.y - this.player.y) < 35) {
+        if (input.isDown('KeyE') || Math.hypot(r.x - this.player.x, r.y - this.player.y) < 22) {
           r.collected = true;
           this.score.relicsCollected++;
           audio.playPickup();
@@ -160,7 +169,6 @@ export class World {
     let playerDetectedThisFrame = false;
     
     this.guards.forEach(g => {
-      // Light level at guard/player
       let inLight = true;
       this.level.shadows.forEach(s => {
         if (this.player.x >= s.x && this.player.x <= s.x + s.w &&
@@ -169,7 +177,6 @@ export class World {
         }
       });
       
-      // Vision cone check
       const distToPlayer = Math.hypot(this.player.x - g.x, this.player.y - g.y);
       const angleToPlayer = Math.atan2(this.player.y - g.y, this.player.x - g.x);
       let angleDiff = Math.abs(angleToPlayer - g.angle);
@@ -185,7 +192,7 @@ export class World {
         g.lastKnownPlayerX = this.player.x;
         g.lastKnownPlayerY = this.player.y;
         g.stateTimer = 4.0;
-      } else if (los && inLight && this.player.sneaking && distToPlayer < 120) {
+      } else if (los && inLight && this.player.sneaking && distToPlayer < 110) {
         playerDetectedThisFrame = true;
         g.state = 'alert';
         g.lastKnownPlayerX = this.player.x;
@@ -220,11 +227,11 @@ export class World {
         
         if (g.stateTimer <= 0) {
           g.state = 'search';
-          g.stateTimer = 5.0;
+          g.stateTimer = 4.5;
         }
       } else if (g.state === 'search') {
         g.stateTimer -= dt;
-        g.angle += dt * 1.5;
+        g.angle += dt * 1.8;
         if (g.stateTimer <= 0) {
           g.state = 'patrol';
         }
@@ -235,7 +242,6 @@ export class World {
     if (playerDetectedThisFrame) {
       this.detectionMeter += CONFIG.DETECTION_FILL_RATE * dt;
       if (this.detectionMeter >= 1.0) {
-        // Caught!
         this.detectionMeter = 1.0;
         this.score.detections++;
         audio.playAlert();
@@ -243,7 +249,6 @@ export class World {
         if (this.player.lives <= 0) {
           this.state = 'gameOver';
         } else {
-          // Restart level
           this.loadLevel(this.levelIndex);
         }
       }
@@ -253,17 +258,14 @@ export class World {
   }
   
   checkCollision(x, y, r) {
-    // Check map boundaries
-    if (x - r < 0 || x + r > CONFIG.WIDTH || y - r < 0 || y + r > CONFIG.HEIGHT) return true;
+    if (x - r < 40 || x + r > CONFIG.PLAYFIELD_WIDTH - 40 || y - r < 44 || y + r > CONFIG.PLAYFIELD_HEIGHT) return true;
     
-    // Check walls
     for (const w of this.level.walls) {
       if (x + r > w.x && x - r < w.x + w.w && y + r > w.y && y - r < w.y + w.h) {
         return true;
       }
     }
     
-    // Check cover
     for (const c of this.level.cover) {
       if (x + r > c.x && x - r < c.x + c.w && y + r > c.y && y - r < c.y + c.h) {
         return true;
@@ -275,17 +277,15 @@ export class World {
   
   hasLineOfSight(x1, y1, x2, y2) {
     const dist = Math.hypot(x2 - x1, y2 - y1);
-    const steps = Math.floor(dist / 10);
+    const steps = Math.floor(dist / 8);
     for (let i = 1; i < steps; i++) {
       const t = i / steps;
       const cx = x1 + (x2 - x1) * t;
       const cy = y1 + (y2 - y1) * t;
       
-      // Check walls
       for (const w of this.level.walls) {
         if (cx >= w.x && cx <= w.x + w.w && cy >= w.y && cy <= w.y + w.h) return false;
       }
-      // Check cover blocks line of sight
       for (const c of this.level.cover) {
         if (cx >= c.x && cx <= c.x + c.w && cy >= c.y && cy <= c.y + c.h) return false;
       }
