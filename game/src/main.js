@@ -21,50 +21,47 @@ const renderer = new Renderer(ctx);
 
 if (shotName) {
   stageShot(shotName, world);
-  renderer.render(world);
-  // Render twice to settle any frame logic
+  renderer.render(world, true, shotName);
   requestAnimationFrame(() => {
-    renderer.render(world);
+    renderer.render(world, true, shotName);
     window.__shotReady = true;
     const status = document.getElementById('status');
     if (status) status.textContent = 'shotReady';
   });
 } else {
-  // Normal game loop
   let lastTime = performance.now();
   
   function loop(now) {
     const dt = Math.min((now - lastTime) / 1000, 0.1);
     lastTime = now;
     
-    // Handle global inputs (Mute, Pause, Restart)
     if (input.consumeClick()) {
       audio.init();
       const mouse = input.mouse;
+      const cx = CONFIG.WIDTH / 2;
       
       if (world.state === 'title') {
-        // Check start button click
-        if (mouse.x >= CONFIG.WIDTH / 2 - 100 && mouse.x <= CONFIG.WIDTH / 2 + 100 &&
-            mouse.y >= 520 && mouse.y <= 570) {
+        if (mouse.x >= cx - 110 && mouse.x <= cx + 110 &&
+            mouse.y >= 520 && mouse.y <= 575) {
           world.state = 'play';
         }
       } else if (world.state === 'levelComplete') {
-        if (mouse.x >= CONFIG.WIDTH / 2 - 100 && mouse.x <= CONFIG.WIDTH / 2 + 100 &&
-            mouse.y >= 400 && mouse.y <= 450) {
+        if (mouse.x >= cx - 110 && mouse.x <= cx + 110 &&
+            mouse.y >= 410 && mouse.y <= 465) {
           world.loadLevel(world.levelIndex + 1);
           world.state = 'play';
         }
       } else if (world.state === 'gameOver') {
-        if (mouse.x >= CONFIG.WIDTH / 2 - 100 && mouse.x <= CONFIG.WIDTH / 2 + 100 &&
-            mouse.y >= 400 && mouse.y <= 450) {
+        if (mouse.x >= cx - 110 && mouse.x <= cx + 110 &&
+            mouse.y >= 410 && mouse.y <= 465) {
           world.loadLevel(0);
           world.player.lives = 3;
           world.score = { time: 0, detections: 0, relicsCollected: 0 };
           world.state = 'play';
         }
       } else if (world.state === 'victory') {
-        if (mouse.x >= CONFIG.WIDTH / 2 - 100 && mouse.x <= CONFIG.WIDTH / 2 + 100 &&
-            mouse.y >= 510 && mouse.y <= 560) {
+        if (mouse.x >= cx - 110 && mouse.x <= cx + 110 &&
+            mouse.y >= 500 && mouse.y <= 555) {
           world.loadLevel(0);
           world.player.lives = 3;
           world.score = { time: 0, detections: 0, relicsCollected: 0 };
@@ -90,7 +87,7 @@ if (shotName) {
     }
     
     world.update(dt, input, audio);
-    renderer.render(world);
+    renderer.render(world, false);
     
     requestAnimationFrame(loop);
   }
